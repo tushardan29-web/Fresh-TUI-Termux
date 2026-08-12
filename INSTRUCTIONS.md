@@ -8,7 +8,7 @@ their source nor a fork relationship is required).
 
 ## 0. What you end up with
 
-- A public GitHub repo (e.g. `YOURNAME/fresh-termux`) holding these files.
+- A public GitHub repo (`tushardan29-web/Fresh-TUI-Termux`) holding these files.
 - A GitHub Actions workflow `termux-release` that, weekly *and* on demand:
   1. reads the latest upstream release tag of `sinelaw/fresh`,
   2. skips if this repo already published that tag,
@@ -23,7 +23,7 @@ their source nor a fork relationship is required).
 ## 1. Create the GitHub repo
 
 1. Go to https://github.com/new — or the **+** menu → **New repository**.
-2. Name: `fresh-termux`. Visibility: **Public** (free Actions minutes only for
+2. Name: `Fresh-TUI-Termux`. Visibility: **Public** (free Actions minutes only for
    public repos).
 3. Do **not** add a README, license, or .gitignore (you have them here —
    adding GitHub's own would create a merge conflict on push).
@@ -41,24 +41,24 @@ git commit -m "Termux/Android build: patches + release automation"
 git branch -M main
 
 # option A — HTTPS + personal access token (no gh CLI)
-git remote add origin https://github.com/YOURNAME/fresh-termux.git
+git remote add origin https://github.com/tushardan29-web/Fresh-TUI-Termux.git
 git push -u origin main
-# on username prompt: YOURNAME, on password: a Personal Access Token
+# on username prompt: tushardan29-web, on password: a Personal Access Token
 # (github.com/settings/tokens → Generate classic token → scope: repo)
 
 # option B — GitHub CLI (easiest)
 pkg install gh
 gh auth login          # follow the prompt, choose HTTPS
-gh repo create fresh-termux --public --source . --push
+gh repo create Fresh-TUI-Termux --public --source . --push
 ```
 
-Verify: `git ls-remote origin` shows `main`, and github.com/YOURNAME/fresh-termux
+Verify: `git ls-remote origin` shows `main`, and github.com/tushardan29-web/Fresh-TUI-Termux
 lists the files above (`update.sh`, `termux/`, `.github/workflows/`, `README.md`,
 `INSTRUCTIONS.md`).
 
 ## 3. Run the Actions workflow
 
-1. https://github.com/YOURNAME/fresh-termux → **Actions** tab.
+1. https://github.com/tushardan29-web/Fresh-TUI-Termux → **Actions** tab.
    The `termux-release` workflow appears automatically (a first push doesn't
    auto-trigger it; that's fine).
 2. Open **termux-release** → **Run workflow** (green button) → **Run workflow**
@@ -75,7 +75,7 @@ trusting it:
 ```bash
 # on the device, in a temp dir
 cd ~/.cache/fresh-termux
-curl -L -O https://github.com/YOURNAME/fresh-termux/releases/download/v0.4.7/fresh-editor-aarch64-linux-android.tar.xz
+curl -L -O https://github.com/tushardan29-web/Fresh-TUI-Termux/releases/download/v0.4.7/fresh-editor-aarch64-linux-android.tar.xz
 tar xJf fresh-editor-aarch64-linux-android.tar.xz
 ls -l fresh-editor-x/fresh          # bionic ELF, ~38 MB — should match local build size
 file fresh-editor-x/fresh
@@ -92,8 +92,8 @@ will point at your repo.
 Build locally from your repo instead of upstream, and bake the updater endpoint:
 
 ```bash
-FRESH_TERMUX_REPO=YOURNAME/fresh-termux \
-FRESH_UPDATE_REPO=YOURNAME/fresh-termux \
+FRESH_TERMUX_REPO=tushardan29-web/Fresh-TUI-Termux \
+FRESH_UPDATE_REPO=tushardan29-web/Fresh-TUI-Termux \
   bash ~/projects/fresh-termux/update.sh
 ```
 
@@ -109,7 +109,7 @@ in-app updater (`fresh --cmd update`) pulls and unpacks it
 - **Partially failed CI run** (release published, build failed, retry won't
   republish because the tag exists): delete the tag + release on GitHub →
   **Run workflow** again. Deleting a release does not reset the tag; delete both
-  from github.com/YOURNAME/fresh-termux → Releases → ⋯ → **Delete**, and
+  from github.com/tushardan29-web/Fresh-TUI-Termux → Releases → ⋯ → **Delete**, and
   **Tags** → ⋯ → **Delete**.
 - **Upstream code drift** (new fresh release changes the code the patches
   touch): `termux/patch.sh` fails loudly (asserts a signature before patching)

@@ -35,7 +35,7 @@ patch code changed.
 ```bash
 bash ~/projects/fresh-termux/update.sh   # update to latest
 bash ~/projects/fresh-termux/update.sh 0.4.8      # specific version
-FRESH_TERMUX_REPO=you/fresh-termux bash ~/projects/fresh-termux/update.sh   # from your repo
+FRESH_TERMUX_REPO=tushardan29-web/Fresh-TUI-Termux bash ~/projects/fresh-termux/update.sh   # from your repo
 ```
 
 Everything is incremental: builds share `~/.cache/fresh-termux/target`, so
@@ -55,7 +55,7 @@ tag. Weekly cron + manual dispatch; skips when already published.
 Build + install once with your repo as source:
 
 ```bash
-FRESH_TERMUX_REPO=YOURNAME/fresh-termux FRESH_UPDATE_REPO=YOURNAME/fresh-termux \
+FRESH_TERMUX_REPO=tushardan29-web/Fresh-TUI-Termux FRESH_UPDATE_REPO=tushardan29-web/Fresh-TUI-Termux \
   bash ~/projects/fresh-termux/update.sh
 ```
 
