@@ -1,13 +1,22 @@
 #!/usr/bin/env bash
-# online-verify.sh — download a fresh release asset to a temp dir and RUN it
-# WITHOUT installing, to check the published CI build works on this device.
+# online-verify.sh — download a fresh release asset and run it WITHOUT
+# installing, to check the published CI build works on this device.
 # Fails (exit 1) if the asset is the wrong arch (e.g. an x86-64 host build).
 #
+# Default: verify mode — downloads to a temp dir, checks arch, runs --version,
+#          cleans up.
+# --run:  soft-run mode — downloads to ~/.cache/fresh-termux/online-<tag>
+#          (kept), checks arch, then launches the real editor in THIS terminal
+#          via exec. Nothing touches the system install. Exit with Ctrl-C
+#          (or :q in the editor). Extra args are passed to fresh, e.g.
+#          bash online-verify.sh --run v0.4.9 somefile.txt
+#
 # Usage:
-#   bash online-verify.sh [VERSION]        # e.g. bash online-verify.sh v0.4.9
+#   bash online-verify.sh [VERSION]        # verify: e.g. online-verify.sh v0.4.9
+#   bash online-verify.sh --run [VERSION]  # soft-run the editor (no install)
 #   bash online-verify.sh                  # prompts: latest / list / specific
 #   bash online-verify.sh --list           # list releases and exit
-#   bash online-verify.sh --latest/--yes   # verify latest, no prompt
+#   bash online-verify.sh --latest/--yes   # no prompts
 #   bash online-verify.sh --help
 # Env:   FRESH_INSTALL_REPO=user/fresh     # release repo (default tushardan29-web/Fresh-TUI-Termux)
 #
@@ -41,13 +50,16 @@ get_latest() {
       | grep -oE 'refs/tags/v[0-9]+\.[0-9]+\.[0-9]+' | sed 's#refs/tags/##' | sort -V | tail -1
 }
 
-TAG=""; LIST_ONLY=0; LATEST=0
+TAG=""; LIST_ONLY=0; LATEST=0; RUN=0; FRESH_ARGS=()
 while [ $# -gt 0 ]; do
     case "$1" in
-        --list|-l) LIST_ONLY=1; shift ;;
-        --latest|--yes|-y) LATEST=1; shift ;;
-        -h|--help) sed -n '2,12p' "$0"; exit 0 ;;
-        *) TAG=$(normtag "$1"); shift ;;
+        --list|-l)          LIST_ONLY=1; shift ;;
+        --latest|--yes|-y)  LATEST=1; shift ;;
+        --run)              RUN=1; shift ;;
+        -h|--help)          sed -n '2,18p' "$0"; exit 0 ;;
+        *)
+            if [ -z "$TAG" ]; then TAG=$(normtag "$1"); else FRESH_ARGS+=("$1"); fi
+            shift ;;
     esac
 done
 if [ "$LIST_ONLY" = "1" ]; then
@@ -74,13 +86,20 @@ if [ -z "$TAG" ]; then
 fi
 echo "release: $TAG  (asset: $ASSET)"
 
-TMP=$(mktemp -d); trap 'rm -rf "$TMP"' EXIT
-echo "Downloading from $GH/releases/download/${TAG}/$ASSET ..."
-curl -fL "$GH/releases/download/${TAG}/$ASSET" -o "$TMP/$ASSET" \
+# run mode: keep the extract (editor may stay open a long time); verify mode: tmp + cleanup
+if [ "$RUN" = "1" ]; then
+    DEST="${HOME}/.cache/fresh-termux/online-${TAG}"
+    rm -rf "$DEST"; mkdir -p "$DEST"
+    echo "Downloading to $DEST (soft run, system install untouched) ..."
+else
+    DEST=$(mktemp -d); trap 'rm -rf "$DEST"' EXIT
+    echo "Downloading from $GH/releases/download/${TAG}/$ASSET ..."
+fi
+curl -fL "$GH/releases/download/${TAG}/$ASSET" -o "$DEST/$ASSET" \
     || { echo "download failed — no asset for $TAG? Run 'bash online-verify.sh --list'."; exit 1; }
-echo "Extracting (to $TMP, not installing)..."
-tar -xJf "$TMP/$ASSET" -C "$TMP"
-BIN_PATH="$TMP/fresh-editor-x/fresh"
+echo "Extracting (to $DEST)..."
+tar -xJf "$DEST/$ASSET" -C "$DEST"
+BIN_PATH="$DEST/fresh-editor-x/fresh"
 
 echo "Binary: $(file -b "$BIN_PATH")"
 if file "$BIN_PATH" | grep -q "x86-64"; then
@@ -93,4 +112,9 @@ fi
 
 echo "Running --version (no install)..."
 "$BIN_PATH" --version
+
+if [ "$RUN" = "1" ]; then
+    echo "Launching fresh ${TAG} in this terminal (Ctrl-C or :q to exit)..."
+    exec "$BIN_PATH" "${FRESH_ARGS[@]}"
+fi
 echo "online-verify PASS — published build runs on $(uname -m) under $(uname -s)"
