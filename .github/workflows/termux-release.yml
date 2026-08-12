@@ -1,0 +1,83 @@
+name: termux-release
+
+on:
+  workflow_dispatch:
+  schedule:
+    - cron: "17 4 * * 1"   # weekly
+
+permissions:
+  contents: write
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Compare upstream vs this repo's latest release
+        id: ver
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          up=$(gh api repos/sinelaw/fresh/releases/latest -q .tag_name)
+          mine=$(gh api "repos/${{ github.repository }}/releases/latest" -q .tag_name 2>/dev/null || echo none)
+          echo "upstream=$up this-repo=$mine"
+          echo "tag=$up" >> "$GITHUB_OUTPUT"
+          if [ -n "$mine" ] && [ "$mine" = "$up" ]; then
+            echo "skip=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Nothing new upstream
+        if: steps.ver.outputs.skip == 'true'
+        run: echo "Already published ${{ steps.ver.outputs.tag }} — nothing to do"
+
+      - uses: dtolnay/rust-toolchain@stable
+        with:
+          targets: aarch64-linux-android
+
+      - uses: nttld/setup-ndk@v1
+        id: ndk
+        with:
+          ndk-version: r27b
+
+      - name: Install libclang (for quickjs bindgen)
+        if: steps.ver.outputs.skip != 'true'
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y libclang-dev
+
+      - name: Fetch upstream source v${{ steps.ver.outputs.tag }}
+        if: steps.ver.outputs.skip != 'true'
+        run: |
+          git clone --depth 1 --branch "${{ steps.ver.outputs.tag }}" https://github.com/sinelaw/fresh.git fresh-src
+
+      - name: Patch for Android
+        if: steps.ver.outputs.skip != 'true'
+        env:
+          FRESH_UPDATE_REPO: ${{ github.repository }}
+        run: bash termux/patch.sh fresh-src
+
+      - name: Build
+        if: steps.ver.outputs.skip != 'true'
+        working-directory: fresh-src
+        run: |
+          export LIBCLANG_PATH=/usr/lib/x86_64-linux-gnu
+          export CC_aarch64_linux_android="$ANDROID_NDK_HOME/toolchains/llvm/prebuilt/linux-x86_64/bin/aarch64-linux-android24-clang"
+          export CARGO_TARGET_AARCH64_LINUX_ANDROID_LINKER="$CC_aarch64_linux_android"
+          bash ../termux/build.sh .
+
+      - name: Package (fresh-editor-<triple>.tar.xz, layout fresh-editor-x/fresh)
+        if: steps.ver.outputs.skip != 'true'
+        run: |
+          mkdir -p pkg/fresh-editor-x
+          cp fresh-src/target/release/fresh pkg/fresh-editor-x/fresh
+          cd pkg && tar -cJf ../fresh-editor-aarch64-linux-android.tar.xz fresh-editor-x
+
+      - name: Publish release
+        if: steps.ver.outputs.skip != 'true'
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ steps.ver.outputs.tag }}
+          prerelease: false
+          files: fresh-editor-aarch64-linux-android.tar.xz
+          fail_on_unmatched_files: true
