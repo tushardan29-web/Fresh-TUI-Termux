@@ -24,6 +24,7 @@ if [ "$VER" = "--force" ]; then
     FORCE=1
     VER=${2:-}
 fi
+VER=${VER#v}   # accept "v0.4.9" or "0.4.9"
 
 command -v curl >/dev/null || { echo "need: curl"; exit 1; }
 command -v python3 >/dev/null || { echo "need: python3"; exit 1; }
@@ -60,11 +61,11 @@ echo "== building (shared target dir: $WORK/target)"
 CARGO_TARGET_DIR="$WORK/target" bash "$DIR/termux/build.sh" "$SRC"
 
 echo "== verifying"
-bash "$DIR/termux/verify.sh" "$WORK/target/release/fresh" "$WORK/verify-$$"
+bash "$DIR/termux/verify.sh" "$WORK/target/aarch64-linux-android/release/fresh" "$WORK/verify-$$"
 
 echo "== installing"
 cp "$BIN" "$WORK/fresh.prev.bin" 2>/dev/null || true
-cp "$WORK/target/release/fresh" "$BIN"
+cp "$WORK/target/aarch64-linux-android/release/fresh" "$BIN"
 chmod 755 "$BIN"
 rm -f "${HOME}/.config/fresh/logs/init.crashes"
 echo "== done: $($BIN --version)"
