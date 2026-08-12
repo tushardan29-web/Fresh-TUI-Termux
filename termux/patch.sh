@@ -14,7 +14,7 @@ cd "$ROOT"
 
 echo "== fresh-termux patch.sh: $(pwd)"
 
-# ---------------------------------------------------------------- 1/4
+# ---------------------------------------------------------------- 1/5
 # kernel_writable: call faccessat with flag 0 instead of AT_EACCESS.
 # musl/libc route flagged faccessat through the faccessat2 syscall (Linux
 # 5.8+); on old Android kernels the seccomp policy SIGSYS-kills the process
@@ -49,7 +49,7 @@ else
     echo "kernel_writable: already patched"
 fi
 
-# ---------------------------------------------------------------- 2/4
+# ---------------------------------------------------------------- 2/5
 # rquickjs-sys ships no pre-generated bindings for aarch64-linux-android;
 # Termux has libclang, so use the project's own bindgen pattern (the same
 # one it uses for FreeBSD/NetBSD).
@@ -66,7 +66,7 @@ else
     echo "fresh-plugin-runtime: already patched"
 fi
 
-# ---------------------------------------------------------------- 3/6
+# ---------------------------------------------------------------- 3/5
 # rustls-platform-verifier panics on Termux ("Expect rustls-platform-verifier
 # to be initialized") — it requires the Android JVM, which a CLI process has
 # no access to. Switch TLS to bundled Mozilla webpki-roots:
@@ -105,7 +105,7 @@ else
     echo "$N: already webpki"
 fi
 
-# ---------------------------------------------------------------- 4/6
+# ---------------------------------------------------------------- 4/5
 # trash + arboard crates have no Android platform module. Patch local copies
 # (taken from the exact Cargo.lock-resolved versions) so Android uses their
 # freedesktop/X11/Wayland backends, wired via [patch.crates-io].
@@ -160,7 +160,7 @@ else
     echo "[patch.crates-io] already wired"
 fi
 
-# ---------------------------------------------------------------- 5/6
+# ---------------------------------------------------------------- 5/5
 # (fork only) point the built-in updater at a custom repo.
 if [ -n "${FRESH_UPDATE_REPO:-}" ]; then
     E=crates/fresh-update/src/endpoint.rs
