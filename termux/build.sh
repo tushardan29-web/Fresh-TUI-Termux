@@ -11,6 +11,6 @@ if [ -z "${LIBCLANG_PATH:-}" ] && [ -n "${PREFIX:-}" ] && [ -d "$PREFIX/lib" ]; 
     export LIBCLANG_PATH="$PREFIX/lib"
 fi
 
-echo "== cargo build --release --bin fresh (target dir: $CARGO_TARGET_DIR)"
-cargo build --release --bin fresh
-echo "== built: $CARGO_TARGET_DIR/release/fresh"
+echo "== cargo build --release --bin fresh --target aarch64-linux-android (target dir: $CARGO_TARGET_DIR)"
+cargo build --release --bin fresh --target aarch64-linux-android
+echo "== built: $CARGO_TARGET_DIR/aarch64-linux-android/release/fresh"

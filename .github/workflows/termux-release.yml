@@ -68,10 +68,10 @@ jobs:
 
       - name: Package (fresh-editor-<triple>.tar.xz, layout fresh-editor-x/fresh)
         if: steps.ver.outputs.skip != 'true'
-        run: |
-          mkdir -p pkg/fresh-editor-x
-          cp fresh-src/target/release/fresh pkg/fresh-editor-x/fresh
-          cd pkg && tar -cJf ../fresh-editor-aarch64-linux-android.tar.xz fresh-editor-x
+    run: |
+      mkdir -p pkg/fresh-editor-x
+      cp fresh-src/target/aarch64-linux-android/release/fresh pkg/fresh-editor-x/fresh
+      cd pkg && tar -cJf ../fresh-editor-aarch64-linux-android.tar.xz fresh-editor-x
 
       - name: Publish release
         if: steps.ver.outputs.skip != 'true'
