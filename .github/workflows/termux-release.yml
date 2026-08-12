@@ -51,6 +51,13 @@ jobs:
         run: |
           git clone --depth 1 --branch "${{ steps.ver.outputs.tag }}" https://github.com/sinelaw/fresh.git fresh-src
 
+      - name: Add Android target to active toolchain
+        if: steps.ver.outputs.skip != 'true'
+        working-directory: fresh-src
+        run: |
+          rustup show active-toolchain
+          rustup target add aarch64-linux-android
+
       - name: Patch for Android
         if: steps.ver.outputs.skip != 'true'
         env:
